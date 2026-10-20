@@ -1,0 +1,326 @@
+
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mr. T.’s English Class – Listening 1: Weekend Talk</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#122039;background:#f1f5f9}
+*{box-sizing:border-box}
+main{max-width:760px;margin:28px auto;padding:0 16px}
+.hero{background:#101b31;color:white;border-radius:18px;padding:30px}
+.hero small{color:#ffc568;font-weight:700;letter-spacing:.08em}
+h1{margin:10px 0}
+section{background:white;border-radius:16px;padding:24px;margin-top:16px;box-shadow:0 2px 12px #13213b12}
+label{display:block;margin:14px 0 5px;font-weight:650}
+input{padding:12px;width:100%;border:1px solid #a9b4c7;border-radius:9px;font:inherit}
+button{border:0;border-radius:9px;background:#203c68;color:white;padding:13px 20px;font:inherit;font-weight:700;cursor:pointer;margin-top:16px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.muted{color:#556477}
+.question{border-top:1px solid #d9e0e8;padding:14px 0}
+.choice{display:block;font-weight:400;padding:8px;margin:3px 0}
+.choice input{width:auto;margin-right:8px}
+.hidden{display:none}
+.error{color:#b42318}
+.good{color:#087448}
+audio{width:100%;margin-top:12px}
+</style>
+</head>
+<body>
+<main>
+<div class="hero">
+  <small>MR. T.’S ENGLISH CLASS · 7D</small>
+  <h1>Listening Skill Check 1</h1>
+  <div>Weekend Talk · 12 Fragen · ein Versuch</div>
+</div>
+
+<section id="login">
+  <h2>Bereit für den Test?</h2>
+  <p class="muted">Lerne zuerst. Wenn du startest, wird dein Code verbraucht. Du hast 20 Minuten und kannst die Aufnahme höchstens zweimal abspielen.</p>
+  <label for="student">Schülercode</label>
+  <input id="student" placeholder="7d-01" maxlength="5" autocomplete="off">
+  <label for="access">Einmaliger Zugangscode</label>
+  <input id="access" placeholder="Zugangscode eingeben" autocomplete="off">
+  <button id="start">Verbindlichen Test starten</button>
+</section>
+
+<section id="exam" class="hidden">
+  <h2>Höre zu und beantworte die Fragen</h2>
+  <p class="muted">Die Fragen folgen dem Gespräch. Du kannst die Aufnahme höchstens zweimal abspielen. Beantworte alle Fragen. Verbleibende Zeit: <b id="timer">20:00</b>. Verbleibende Wiedergaben: <b id="plays">2</b>.</p>
+  <audio id="audio" preload="none" src="weekend-talk.mp3"></audio>
+  <button id="play">Aufnahme abspielen</button>
+  <div id="questions"></div>
+  <button id="submit">Antworten endgültig abgeben</button>
+</section>
+
+<section id="result" class="hidden"></section>
+<section id="status" class="hidden" aria-live="polite"></section>
+</main>
+
+<script>
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzERNkPgNjAq7yut6IL0NhuqAYZqCdCv5ygWOiU0fLkvyVSX2JV40h-_htk_zXPtJTU/exec';
+
+const QUESTIONS = [
+  ['Was machte Katie am Samstag zuerst?', [
+    'Sie ging mit Freunden in die Bibliothek.',
+    'Sie ging allein ins Kino.',
+    'Sie besuchte ihre Großeltern.',
+    'Sie kaufte Schuhe.'
+  ]],
+  ['Wie fühlte sich Katie in der Bibliothek?', [
+    'Sie war gestresst.',
+    'Sie konnte sich gut entspannen.',
+    'Sie langweilte sich sehr.',
+    'Sie war wütend.'
+  ]],
+  ['Mit wem ging Katie am Samstagabend essen?', [
+    'Mit ihrer Familie.',
+    'Mit ihren Nachbarn.',
+    'Mit Arbeitskollegen.',
+    'Mit Todd.'
+  ]],
+  ['Was war das Besondere am Restaurant?', [
+    'Es servierte nur Fisch.',
+    'Es lag in einer Bibliothek.',
+    'Es war besonders billig.',
+    'Es bot ausschließlich Chicken Wings an.'
+  ]],
+  ['Was hielt Todd von dem scharfen Essen dort?', [
+    'Es war ihm zu scharf.',
+    'Er fand es langweilig.',
+    'Er hatte es noch nie probiert.',
+    'Er fand es zu kalt.'
+  ]],
+  ['Was kaufte Katie am Sonntag?', [
+    'Eine Tasche und ein Buch.',
+    'Schuhe und ein Kleid.',
+    'Ein Fahrrad und eine Jacke.',
+    'Nur Lebensmittel.'
+  ]],
+  ['Warum kaufte Katie das Kleid?', [
+    'Sie brauchte es für eine Hochzeit.',
+    'Todd hatte es empfohlen.',
+    'Es war reduziert.',
+    'Sie hatte es verloren.'
+  ]],
+  ['Was machte Katie nach dem Einkaufen?', [
+    'Sie ging joggen.',
+    'Sie ging ins Kino.',
+    'Sie besuchte die Bibliothek.',
+    'Sie trank mit einer Freundin Kaffee.'
+  ]],
+  ['Was machte Todd am Samstagabend?', [
+    'Er sah sich einen Star-Wars-Film an.',
+    'Er traf Katie im Restaurant.',
+    'Er ging mit Freunden einkaufen.',
+    'Er arbeitete bis spät.'
+  ]],
+  ['Warum gefiel Todd der Film „Rogue One“?', [
+    'Weil er besonders kurz war.',
+    'Weil er die Figuren und die Handlung mochte.',
+    'Weil Katie darin mitspielte.',
+    'Weil er den Film schon kannte.'
+  ]],
+  ['Warum geht Todd gerne allein ins Kino?', [
+    'Weil er keine Freunde hat.',
+    'Weil die Karten billiger sind.',
+    'Weil er sich auf den Film konzentrieren möchte.',
+    'Weil er dort schlafen möchte.'
+  ]],
+  ['Was machte Todd am Sonntag im Park?', [
+    'Er schwamm und kaufte Kleidung.',
+    'Er traf Katie und las Bücher.',
+    'Er spielte Fußball mit Freunden.',
+    'Er joggte und fotografierte.'
+  ]]
+];
+
+let token = '';
+let studentId = '';
+let deadline = 0;
+let plays = 0;
+let playing = false;
+let submitted = false;
+
+const $ = id => document.getElementById(id);
+
+function message(t, bad = true) {
+  $('status').classList.remove('hidden');
+  $('status').innerHTML = '';
+  const p = document.createElement('p');
+  p.textContent = t;
+  p.className = bad ? 'error' : 'good';
+  $('status').append(p);
+}
+
+async function api(data) {
+  const response = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: {'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(data),
+    redirect: 'follow'
+  });
+  if (!response.ok) throw Error('Server nicht erreichbar.');
+  return response.json();
+}
+
+$('start').onclick = async () => {
+  const btn = $('start');
+  studentId = $('student').value.trim().toLowerCase();
+  const code = $('access').value.trim().toUpperCase();
+
+  if (!/^7d-(0[1-9]|1\d|2[0-5])$/.test(studentId) || !code) {
+    message('Gib einen gültigen Schülercode und Zugangscode ein.');
+    return;
+  }
+
+  btn.disabled = true;
+
+  try {
+    const r = await api({action:'start', studentId, code});
+    if (!r.ok) throw Error(r.error);
+
+    token = r.token;
+    deadline = Date.now() + r.minutes * 60000;
+
+    $('login').classList.add('hidden');
+    $('status').classList.add('hidden');
+    $('exam').classList.remove('hidden');
+
+    renderQuestions();
+    setInterval(tick, 1000);
+    tick();
+  } catch (e) {
+    message(e.message);
+    btn.disabled = false;
+  }
+};
+
+function renderQuestions() {
+  const wrap = $('questions');
+
+  QUESTIONS.forEach(([q, opts], i) => {
+    const div = document.createElement('div');
+    div.className = 'question';
+
+    const h = document.createElement('h3');
+    h.textContent = (i + 1) + '. ' + q;
+    div.append(h);
+
+    opts.forEach((o, j) => {
+      const l = document.createElement('label');
+      l.className = 'choice';
+
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = 'q' + i;
+      input.value = 'ABCD'[j];
+
+      l.append(input, document.createTextNode(o));
+      div.append(l);
+    });
+
+    wrap.append(div);
+  });
+}
+
+function tick() {
+  if (submitted) return;
+
+  const left = Math.max(
+    0,
+    Math.ceil((deadline - Date.now()) / 1000)
+  );
+
+  $('timer').textContent =
+    String(Math.floor(left / 60)).padStart(2, '0') +
+    ':' +
+    String(left % 60).padStart(2, '0');
+
+  if (left === 0) {
+    $('submit').disabled = true;
+    $('play').disabled = true;
+    message('Die Zeit ist abgelaufen. Wende dich an deine Lehrkraft.');
+  }
+}
+
+$('play').onclick = async () => {
+  if (playing || plays >= 2 || Date.now() > deadline) return;
+
+  plays++;
+  $('plays').textContent = String(2 - plays);
+  $('play').disabled = true;
+  playing = true;
+
+  try {
+    $('audio').currentTime = 0;
+    await $('audio').play();
+  } catch (e) {
+    plays--;
+    $('plays').textContent = String(2 - plays);
+    playing = false;
+    $('play').disabled = false;
+    message('Die Aufnahme konnte nicht abgespielt werden. Wende dich an deine Lehrkraft.');
+  }
+};
+
+$('audio').onended = () => {
+  playing = false;
+  $('play').disabled = plays >= 2;
+};
+
+$('audio').onpause = () => {
+  if ($('audio').ended) return;
+  if (playing) {
+    playing = false;
+    $('play').disabled = plays >= 2;
+  }
+};
+
+$('submit').onclick = async () => {
+  const answers = QUESTIONS.map((_, i) =>
+    document.querySelector('input[name="q' + i + '"]:checked')?.value || ''
+  );
+
+  if (answers.some(a => !a)) {
+    message('Bitte beantworte alle zwölf Fragen.');
+    return;
+  }
+
+  if (!confirm('Antworten endgültig abgeben? Du kannst den Test nicht wiederholen.')) {
+    return;
+  }
+
+  $('submit').disabled = true;
+
+  try {
+    const r = await api({
+      action:'submit',
+      studentId,
+      token,
+      answers
+    });
+
+    if (!r.ok) throw Error(r.error);
+
+    submitted = true;
+    $('audio').pause();
+    $('exam').classList.add('hidden');
+    $('status').classList.add('hidden');
+    $('result').classList.remove('hidden');
+
+    $('result').innerHTML =
+      '<h2>Test abgeschlossen</h2>' +
+      '<p><strong>' + r.correct + ' / ' + r.total +
+      ' richtig (' + r.score + '%)</strong></p>' +
+      '<p>' + (r.passed ? 'Bestanden' : 'Nicht bestanden') + '</p>' +
+      '<p>Dein Ergebnis wurde gespeichert. Du kannst diesen Test nicht wiederholen.</p>';
+  } catch (e) {
+    message(e.message);
+    $('submit').disabled = false;
+  }
+};
+</script>
+</body>
+</html>
