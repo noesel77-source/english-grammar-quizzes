@@ -170,7 +170,7 @@ $('start').onclick = async () => {
   studentId = $('student').value.trim().toLowerCase();
   const code = $('access').value.trim().toUpperCase();
 
-  if (!/^7d-(0[1-9]|1\d|2[0-5])$/.test(studentId) || !code) {
+  if (!/^7d-(0[1-9]|1\d|2[0-6])$/.test(studentId) || !code) {
     message('Gib einen gültigen Schülercode und Zugangscode ein.');
     return;
   }
