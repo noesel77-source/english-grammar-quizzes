@@ -323,6 +323,15 @@ $('submit').onclick = async () => {
     $('submit').disabled = false;
   }
 };
+  // Vorschau ohne Anmeldung oder Speicherung
+if (new URLSearchParams(window.location.search).has('preview')) {
+  $('login').classList.add('hidden');
+  $('exam').classList.remove('hidden');
+  $('submit').style.display = 'none';
+  $('timer').textContent = 'Vorschau';
+  $('play').disabled = true;
+  renderQuestions();
+}
 </script>
 </body>
 </html>
