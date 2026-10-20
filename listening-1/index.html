@@ -208,14 +208,16 @@ function renderQuestions() {
     h.textContent = (i + 1) + '. ' + q;
     div.append(h);
 
-    opts.forEach((o, j) => {
+    opts.map((o, j) => ({o, original: j}))
+    .sort(() => Math.random() - 0.5)
+    .forEach(({o, original}) => {
       const l = document.createElement('label');
       l.className = 'choice';
 
       const input = document.createElement('input');
       input.type = 'radio';
       input.name = 'q' + i;
-      input.value = 'ABCD'[j];
+      input.value = 'ABCD'[original];
 
       l.append(input, document.createTextNode(o));
       div.append(l);
