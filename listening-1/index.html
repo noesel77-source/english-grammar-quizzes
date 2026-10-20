@@ -263,7 +263,7 @@ $('play').onclick = async () => {
     $('plays').textContent = String(2 - plays);
     playing = false;
     $('play').disabled = false;
-    message('Die Aufnahme konnte nicht abgespielt werden. Wende dich an deine Lehrkraft.');
+    message('Audiofehler: ' + e.message);
   }
 };
 
