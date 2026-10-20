@@ -328,9 +328,10 @@ if (new URLSearchParams(window.location.search).has('preview')) {
   $('login').classList.add('hidden');
   $('exam').classList.remove('hidden');
   $('submit').style.display = 'none';
-  $('timer').textContent = 'Vorschau';
-  $('play').disabled = true;
-  renderQuestions();
+$('timer').textContent = 'Vorschau';
+$('play').disabled = false;
+deadline = Date.now() + 60 * 60 * 1000;
+renderQuestions();
 }
 </script>
 </body>
