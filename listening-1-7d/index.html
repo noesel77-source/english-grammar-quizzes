@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mr. T.’s English Class – Listening 1: Weekend Talk</title>
+<title>Mr. T.’s English Class – Listening 1 – 7d</title>
 <style>
 :root{font-family:system-ui,-apple-system,sans-serif;color:#122039;background:#f1f5f9}
 *{box-sizing:border-box}
@@ -24,14 +24,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .hidden{display:none}
 .error{color:#b42318}
 .good{color:#087448}
-audio{width:100%;margin-top:12px}
 </style>
 </head>
 <body>
 <main>
 <div class="hero">
   <small>MR. T.’S ENGLISH CLASS · 7D</small>
-  <h1>Listening Skill Check 1</h1>
+  <h1>Listening Skill Check 1 – 7d</h1>
   <div>Weekend Talk · 12 Fragen · ein Versuch</div>
 </div>
 
@@ -48,7 +47,7 @@ audio{width:100%;margin-top:12px}
 <section id="exam" class="hidden">
   <h2>Höre zu und beantworte die Fragen</h2>
   <p class="muted">Die Fragen folgen dem Gespräch. Du kannst die Aufnahme höchstens zweimal abspielen. Beantworte alle Fragen. Verbleibende Zeit: <b id="timer">20:00</b>. Verbleibende Wiedergaben: <b id="plays">2</b>.</p>
- <audio id="audio" preload="none" src="../listening-1/Weekend%20Talk.m4a"></audio>
+  <audio id="audio" preload="metadata" src="../listening-1/Weekend%20Talk.m4a"></audio>
   <button id="play">Aufnahme abspielen</button>
   <div id="questions"></div>
   <button id="submit">Antworten endgültig abgeben</button>
@@ -136,18 +135,20 @@ const QUESTIONS = [
   ]]
 ];
 
+const $ = id => document.getElementById(id);
+const preview = new URLSearchParams(window.location.search).has('preview');
+const audio = $('audio');
 let token = '';
 let studentId = '';
 let deadline = 0;
 let plays = 0;
 let playing = false;
+let startingAudio = false;
 let submitted = false;
-
-const $ = id => document.getElementById(id);
 
 function message(t, bad = true) {
   $('status').classList.remove('hidden');
-  $('status').innerHTML = '';
+  $('status').replaceChildren();
   const p = document.createElement('p');
   p.textContent = t;
   p.className = bad ? 'error' : 'good';
@@ -176,18 +177,15 @@ $('start').onclick = async () => {
   }
 
   btn.disabled = true;
-
   try {
     const r = await api({action:'start', studentId, code});
     if (!r.ok) throw Error(r.error);
 
     token = r.token;
     deadline = Date.now() + r.minutes * 60000;
-
     $('login').classList.add('hidden');
     $('status').classList.add('hidden');
     $('exam').classList.remove('hidden');
-
     renderQuestions();
     setInterval(tick, 1000);
     tick();
@@ -199,84 +197,82 @@ $('start').onclick = async () => {
 
 function renderQuestions() {
   const wrap = $('questions');
-
+  wrap.replaceChildren();
   QUESTIONS.forEach(([q, opts], i) => {
     const div = document.createElement('div');
     div.className = 'question';
-
     const h = document.createElement('h3');
     h.textContent = (i + 1) + '. ' + q;
     div.append(h);
 
     opts.map((o, j) => ({o, original: j}))
-    .sort(() => Math.random() - 0.5)
-    .forEach(({o, original}) => {
-      const l = document.createElement('label');
-      l.className = 'choice';
-
-      const input = document.createElement('input');
-      input.type = 'radio';
-      input.name = 'q' + i;
-      input.value = 'ABCD'[original];
-
-      l.append(input, document.createTextNode(o));
-      div.append(l);
-    });
-
+      .sort(() => Math.random() - 0.5)
+      .forEach(({o, original}) => {
+        const l = document.createElement('label');
+        l.className = 'choice';
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'q' + i;
+        input.value = 'ABCD'[original];
+        l.append(input, document.createTextNode(o));
+        div.append(l);
+      });
     wrap.append(div);
   });
 }
 
 function tick() {
   if (submitted) return;
-
-  const left = Math.max(
-    0,
-    Math.ceil((deadline - Date.now()) / 1000)
-  );
-
+  const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
   $('timer').textContent =
-    String(Math.floor(left / 60)).padStart(2, '0') +
-    ':' +
+    String(Math.floor(left / 60)).padStart(2, '0') + ':' +
     String(left % 60).padStart(2, '0');
 
   if (left === 0) {
     $('submit').disabled = true;
     $('play').disabled = true;
+    audio.pause();
     message('Die Zeit ist abgelaufen. Wende dich an deine Lehrkraft.');
   }
 }
 
 $('play').onclick = async () => {
-  if (playing || plays >= 2 || Date.now() > deadline) return;
+  if (playing || startingAudio || plays >= 2 || Date.now() > deadline) return;
 
-  plays++;
-  $('plays').textContent = String(2 - plays);
+  startingAudio = true;
   $('play').disabled = true;
-  playing = true;
+  $('status').classList.add('hidden');
 
   try {
-    $('audio').currentTime = 0;
-    await $('audio').play();
-  } catch (e) {
-    plays--;
+    // Safari can reject seeking before metadata is available.
+    // Starting playback directly also preserves the browser's user gesture.
+    if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      audio.currentTime = 0;
+    }
+    await audio.play();
+    plays++;
     $('plays').textContent = String(2 - plays);
+    playing = true;
+  } catch (e) {
     playing = false;
-    $('play').disabled = false;
-    message('Audiofehler: ' + e.message);
+    message('Audiofehler: ' + (e && e.message ? e.message : 'Wiedergabe nicht möglich.'));
+  } finally {
+    startingAudio = false;
+    $('play').disabled = playing || plays >= 2 || Date.now() > deadline;
   }
 };
 
-$('audio').onended = () => {
+audio.onended = () => {
   playing = false;
-  $('play').disabled = plays >= 2;
+  $('play').disabled = plays >= 2 || Date.now() > deadline;
 };
 
-$('audio').onpause = () => {
-  if ($('audio').ended) return;
+audio.onpause = () => {
+  if (audio.ended || startingAudio) return;
   if (playing) {
     playing = false;
-    $('play').disabled = plays >= 2;
+    // A stopped playback still counts as a playback attempt.
+    $('play').disabled = plays >= 2 || Date.now() > deadline;
   }
 };
 
@@ -284,34 +280,21 @@ $('submit').onclick = async () => {
   const answers = QUESTIONS.map((_, i) =>
     document.querySelector('input[name="q' + i + '"]:checked')?.value || ''
   );
-
   if (answers.some(a => !a)) {
     message('Bitte beantworte alle zwölf Fragen.');
     return;
   }
-
-  if (!confirm('Antworten endgültig abgeben? Du kannst den Test nicht wiederholen.')) {
-    return;
-  }
+  if (!confirm('Antworten endgültig abgeben? Du kannst den Test nicht wiederholen.')) return;
 
   $('submit').disabled = true;
-
   try {
-    const r = await api({
-      action:'submit',
-      studentId,
-      token,
-      answers
-    });
-
+    const r = await api({action:'submit', studentId, token, answers});
     if (!r.ok) throw Error(r.error);
-
     submitted = true;
-    $('audio').pause();
+    audio.pause();
     $('exam').classList.add('hidden');
     $('status').classList.add('hidden');
     $('result').classList.remove('hidden');
-
     $('result').innerHTML =
       '<h2>Test abgeschlossen</h2>' +
       '<p><strong>' + r.correct + ' / ' + r.total +
@@ -323,15 +306,15 @@ $('submit').onclick = async () => {
     $('submit').disabled = false;
   }
 };
-  // Vorschau ohne Anmeldung oder Speicherung
-if (new URLSearchParams(window.location.search).has('preview')) {
+
+// Vorschau ohne Anmeldung oder Speicherung.
+if (preview) {
   $('login').classList.add('hidden');
   $('exam').classList.remove('hidden');
   $('submit').style.display = 'none';
-$('timer').textContent = 'Vorschau';
-$('play').disabled = false;
-deadline = Date.now() + 60 * 60 * 1000;
-renderQuestions();
+  $('timer').textContent = 'Vorschau';
+  deadline = Date.now() + 60 * 60 * 1000;
+  renderQuestions();
 }
 </script>
 </body>
